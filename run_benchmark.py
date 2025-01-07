@@ -1,6 +1,7 @@
 # python run_benchmark.py --model_name=gpt-4o-mini --dataset_path=output.json
 
 from typing import Optional
+import time
 import json
 import weave
 import asyncio
@@ -20,10 +21,13 @@ def load_dataset(file_path):
 
 
 def run_benchmark(
-    model_name: str = "gpt-4o-mini",
+    model_name: str = "o1-preview",
     dataset_path: str = "simple_bench_public.json",
+    dataset_weave_ref: str = "weave:///simplebench/simple_bench_public/object/competition_dataset:yrAqXoSOYV2cQ6pY8SRAt8XMbnywywS5YdkMi6nlux8",
+    use_weave_dataset: bool = True,
+    system_prompt: Optional[str] = None,
     num_responses: int = 1,
-    entity: str = "simplebench",
+    entity: Optional[str] = "simplebench",
     project: str = "simple_bench_public",
     temp: float = 0.7,
     max_tokens: int = 2048,
@@ -39,6 +43,10 @@ def run_benchmark(
             Default is "gpt-4o-mini".
         dataset_path (str): Path to the dataset JSON file.
             Default is "simple_bench_public.json".
+        dataset_weave_ref (str): Weave reference to the dataset.
+            Default is "weave:///simplebench/simple_bench_public/object/competition_dataset:yrAqXoSOYV2cQ6pY8SRAt8XMbnywywS5YdkMi6nlux8".
+        use_weave_dataset (bool): Whether to use the dataset from Weave. If False, the dataset will be loaded from the local file.
+            Default is True.
         num_responses (int): If greater than 1, majority voting will be applied.
             Default is 1 (no majority voting).
         entity (str): Optional Weave entity (org/user name) for evaluation tracking.
@@ -53,7 +61,7 @@ def run_benchmark(
         max_retries (int): Maximum number of retries for the model.
             Default is 3.
         system_prompt (str): System prompt for the model.
-            Default is "You are an expert at reasoning and you always pick the most realistic answer. Think step by step and output your reasoning followed by your final answer using the following format: Final Answer: X where X is one of the letters A, B, C, D, E, or F."
+            Default is "You are an expert at reasoning and you always pick the most realistic answer. Just output your final answer using the following format: Final Answer: X where X is one of the letters A, B, C, D, E, or F."
 
     Example:
         python run_benchmark.py --model_name=gpt-4o-mini --dataset_path=simple_bench_public.json --num_responses=3
@@ -64,14 +72,22 @@ def run_benchmark(
     else:
         weave.init(f"{project}")
 
+    if use_weave_dataset:
+        dataset = weave.ref(dataset_weave_ref).get()
+    else:
+        dataset = load_dataset(dataset_path)
+
     evaluation = weave.Evaluation(
-        dataset=load_dataset(dataset_path),
+        dataset=dataset,
         scorers=[eval_majority_vote if num_responses > 1 else eval_multi_choice],
         trials=1,
     )
 
-    with open(system_prompt_path, "r") as f:
-        system_prompt = f.read().strip()
+    if system_prompt is None:
+        with open(system_prompt_path, "r") as f:
+            system_prompt = f.read().strip()
+    else:
+        system_prompt = system_prompt.strip()
 
     model = LiteLLMModel(
         model_name=model_name,
@@ -85,7 +101,12 @@ def run_benchmark(
     if num_responses > 1:
         model = MajorityVoteModel(model=model, num_responses=num_responses)
 
-    asyncio.run(evaluation.evaluate(model))
+    asyncio.run(
+        evaluation.evaluate(
+            model,
+            __weave={"display_name": f"{model_name}_{time.strftime('%Y%m%d_%H%M%S')}_eval"}
+        )
+    )
 
 
 if __name__ == "__main__":

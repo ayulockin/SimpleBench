@@ -14,6 +14,7 @@ from openai import RateLimitError
 
 
 MODEL_MAP = {
+    "o1": "o1",
     "gpt-4o-mini": "gpt-4o-mini",
     "claude-3-5-sonnet-20240620": "claude-3-5-sonnet-20240620",
     "gpt-4o": "gpt-4o-2024-08-06",
@@ -30,7 +31,7 @@ MODEL_MAP = {
     "grok-2": "openrouter/x-ai/grok-2"
 }
 
-EXPONENTIAL_BASE = 2    
+EXPONENTIAL_BASE = 2
 
 
 class MajorityVoteModel(weave.Model):
