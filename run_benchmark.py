@@ -23,7 +23,7 @@ def load_dataset(file_path):
 def run_benchmark(
     model_name: str = "o1-preview",
     dataset_path: str = "simple_bench_public.json",
-    dataset_weave_ref: str = "weave:///simplebench/simple_bench_public/object/competition_dataset:yrAqXoSOYV2cQ6pY8SRAt8XMbnywywS5YdkMi6nlux8",
+    dataset_weave_ref: str = "weave:///simplebench/simple_bench_public/object/competition_dataset:qNJnkgpMqoyc48GwlFCSpVypn3D8x77N7lGCBIab4XQ",
     use_weave_dataset: bool = True,
     system_prompt: Optional[str] = None,
     num_responses: int = 1,
@@ -44,7 +44,7 @@ def run_benchmark(
         dataset_path (str): Path to the dataset JSON file.
             Default is "simple_bench_public.json".
         dataset_weave_ref (str): Weave reference to the dataset.
-            Default is "weave:///simplebench/simple_bench_public/object/competition_dataset:yrAqXoSOYV2cQ6pY8SRAt8XMbnywywS5YdkMi6nlux8".
+            Default is "weave:///simplebench/simple_bench_public/object/competition_dataset:qNJnkgpMqoyc48GwlFCSpVypn3D8x77N7lGCBIab4XQ".
         use_weave_dataset (bool): Whether to use the dataset from Weave. If False, the dataset will be loaded from the local file.
             Default is True.
         num_responses (int): If greater than 1, majority voting will be applied.
